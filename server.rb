@@ -13,6 +13,11 @@ get '/' do
   erb :index, locals: {tshirts: Tshirt.all() }
 end
 
+get '/admin' do
+  erb :admin, locals: {tshirts: Tshirt.all() }
+
+end
+
 #
 # post '/admin' do
 # artist = {
