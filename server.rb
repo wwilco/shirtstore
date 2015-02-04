@@ -1,11 +1,29 @@
 require 'pry'
 require 'sinatra'
 require 'sinatra/reloader'
+require 'json'
+require 'sqlite3'
 require_relative './lib/connection'
 require_relative './lib/tshirts'
 require_relative './lib/purchases'
 
-require 'sqlite3'
+use Rack::Session::Pool, :cookie_only => false
+
+secret_password = ''
+json = ''
+File.open('secret.json', 'r') do |f|
+  f.each_line do |line|
+    json << line
+  end
+end
+json_hash = JSON.parse(json)
+secret_password = json_hash['password']
+
+
+def authenticated?
+  session[:valid_user] == true
+end
+
 
 db = SQLite3::Database.new "tshirtstore.db"
 
@@ -14,11 +32,12 @@ after do
 end
 
 put '/admin' do
-  tshirt = Tshirt.find_by(params[:id])
-  tshirt.quantity = params["quantity"]
-  tshirt.save
-    erb :admin, locals: { tshirts: Tshirt.all() }
-    # redirect '/admin'
+  thisshirt = Tshirt.find_by({id: params["id"].to_i})
+
+  thisshirt.quantity = params["quantity"]
+  thisshirt.save
+
+  redirect '/admin'
 end
 
 get '/' do
@@ -41,11 +60,21 @@ post '/' do
 end
 
 get '/admin' do
-  erb :admin, locals: {tshirts: Tshirt.all(), purchases: Purchase.all() }
-
-
+  if authenticated?
+    erb :admin, locals: {tshirts: Tshirt.all(), purchases: Purchase.all() }
+  else
+    redirect '/'
+  end
 end
 
+post '/session' do
+  if params[:password] === secret_password
+    session[:valid_user] = true
+    redirect '/admin'
+  else
+    redirect '/'
+  end
+end
 
 
 

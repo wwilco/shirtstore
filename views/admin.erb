@@ -31,8 +31,8 @@
           <p><%= tshirt.quantity%> shirts left</p>
           <form id="form_id" action="/admin" method="POST">
             <input type="hidden" name="id" value="<%= tshirt.id %>"/>
-            <input type="hidden" name="_method" value="PUT"/>
             <input type="text" name="quantity" placeholder="Enter New Quantity"/>
+            <input type="hidden" name="_method" value="PUT"/>
             <button name="submit">GO!</button>
           </form>
         </div>
