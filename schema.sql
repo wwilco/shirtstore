@@ -15,3 +15,8 @@ CREATE TABLE purchases (
   quantity INTEGER,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+DROP TABLE IF EXISTS admin;
+CREATE TABLE admin (
+  id INTEGER PRIMARY KEY,
+  pword TEXT
+);

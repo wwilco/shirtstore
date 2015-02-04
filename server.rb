@@ -3,27 +3,26 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'json'
 require 'sqlite3'
+require 'bcrypt'
 require_relative './lib/connection'
 require_relative './lib/tshirts'
 require_relative './lib/purchases'
 
 use Rack::Session::Pool, :cookie_only => false
 
-secret_password = ''
-json = ''
-File.open('secret.json', 'r') do |f|
-  f.each_line do |line|
-    json << line
-  end
-end
-json_hash = JSON.parse(json)
-secret_password = json_hash['password']
-
+# secret_password = ''
+# json = ''
+# File.open('secret.json', 'r') do |f|
+#   f.each_line do |line|
+#     json << line
+#   end
+# end
+# json_hash = JSON.parse(json)
+# secret_password = json_hash['password']
 
 def authenticated?
   session[:valid_user] == true
 end
-
 
 db = SQLite3::Database.new "tshirtstore.db"
 
@@ -41,8 +40,26 @@ put '/admin' do
 end
 
 get '/' do
-  erb :index, locals: {tshirts: Tshirt.all() }
+  table = db.execute("SELECT * FROM admin")
+    if (table.length == 0)
+      erb :setPassword, locals:{msg: "Welcome Admin, please set a password"}
+    else
+      erb :index, locals: {tshirts: Tshirt.all() }
+    end
 end
+
+post '/setPassword' do
+  if (params["password"] == params["confirmPassword"])
+    my_password = BCrypt::Password.create(params["password"])
+    db.execute("INSERT INTO admin (pword) VALUES (?)", my_password)
+    session[:valid_user] = true
+    redirect '/admin'
+  else
+    redirect '/'
+    erb :setPassword, locals:{msg: "Passwords do not match. Try again"}
+  end
+end
+
 
 post '/' do
   purchaseObj = {
@@ -68,7 +85,9 @@ get '/admin' do
 end
 
 post '/session' do
-  if params[:password] === secret_password
+  admin_creds = db.execute("SELECT * FROM admin")
+  # binding.pry
+  if BCrypt::Password.new(admin_creds[0][1]) == params["password"]
     session[:valid_user] = true
     redirect '/admin'
   else
