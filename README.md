@@ -7,7 +7,7 @@ This site was created as part of a group project that included the following tea
 
 The following technologies were leveraged to incorporate all functional requirements:
 * sqlite3
-* Active Records
+* ActiveRecord
 * Ruby
 * Sinatra
-* Bootstrap 3.0
+* Bootstrap
